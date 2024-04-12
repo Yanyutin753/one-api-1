@@ -81,8 +81,8 @@ func ListModels(c *gin.Context) {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
 
-		isGPtI := strings.HasPrefix(groupOpenAIModels[i].OwnedBy, "OpenAI")
-		isGPtJ := strings.HasPrefix(groupOpenAIModels[j].OwnedBy, "OpenAI")
+		isGPtI := strings.HasPrefix(*groupOpenAIModels[i].OwnedBy, "OpenAI")
+		isGPtJ := strings.HasPrefix(*groupOpenAIModels[j].OwnedBy, "OpenAI")
 	
 		// 如果任一OwnedBy是"OpenAI"開头的，且另一OwnedBy不是 "OpenAI"開头的，返回那OwnedBy是"OpenAI"开头的那个模型实例更“小”
 		if isGPtI != isGPtJ {
@@ -126,8 +126,9 @@ func ListModelsForAdmin(c *gin.Context) {
 		if openAIModels[j].OwnedBy == nil {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
-		isGPtI := strings.HasPrefix(openAIModels[i].OwnedBy, "OpenAI")
-		isGPtJ := strings.HasPrefix(openAIModels[j].OwnedBy, "OpenAI")
+
+		isGPtI := strings.HasPrefix(*openAIModels[i].OwnedBy, "OpenAI")
+		isGPtJ := strings.HasPrefix(*openAIModels[j].OwnedBy, "OpenAI")
 	
 		// 如果任一OwnedBy是"OpenAI"開头的，且另一OwnedBy不是 "OpenAI"開头的，返回那OwnedBy是"OpenAI"开头的那个模型实例更“小”
 		if isGPtI != isGPtJ {
