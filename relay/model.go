@@ -80,7 +80,18 @@ func ListModels(c *gin.Context) {
 		if groupOpenAIModels[j].OwnedBy == nil {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
-		return *groupOpenAIModels[i].OwnedBy < *groupOpenAIModels[j].OwnedBy
+
+		if *groupOpenAIModels[i].OwnedBy != *groupOpenAIModels[j].OwnedBy {
+			return *groupOpenAIModels[i].OwnedBy < *groupOpenAIModels[j].OwnedBy
+		}
+	
+		// 第二层排序：按照模型名称的字母顺序排序，小的在前
+		return groupOpenAIModels[i].Id < groupOpenAIModels[j].Id
+	})
+
+	// 然后按模型的字母顺序排序
+	sort.SliceStable(groupOpenAIModels, func(i, j int) bool {
+		return groupOpenAIModels[i].ModelName < groupOpenAIModels[j].ModelName
 	})
 
 	c.JSON(200, gin.H{
@@ -111,7 +122,13 @@ func ListModelsForAdmin(c *gin.Context) {
 		if openAIModels[j].OwnedBy == nil {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
-		return *openAIModels[i].OwnedBy < *openAIModels[j].OwnedBy
+		
+		if *groupOpenAIModels[i].OwnedBy != *groupOpenAIModels[j].OwnedBy {
+			return *groupOpenAIModels[i].OwnedBy < *groupOpenAIModels[j].OwnedBy
+		}
+	
+		// 第二层排序：按照模型名称的字母顺序排序，小的在前
+		return groupOpenAIModels[i].Id < groupOpenAIModels[j].Id
 	})
 
 	c.JSON(200, gin.H{
