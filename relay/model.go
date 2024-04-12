@@ -8,7 +8,7 @@ import (
 	"one-api/relay/util"
 	"one-api/types"
 	"sort"
-
+	"strings"
 	"github.com/gin-gonic/gin"
 )
 
@@ -81,6 +81,14 @@ func ListModels(c *gin.Context) {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
 
+		isGPtI := strings.HasPrefix(groupOpenAIModels[i].OwnedBy, "OpenAI")
+		isGPtJ := strings.HasPrefix(groupOpenAIModels[j].OwnedBy, "OpenAI")
+	
+		// 如果任一OwnedBy是"OpenAI"開头的，且另一OwnedBy不是 "OpenAI"開头的，返回那OwnedBy是"OpenAI"开头的那个模型实例更“小”
+		if isGPtI != isGPtJ {
+			return isGPtI
+		}
+
 		if *groupOpenAIModels[i].OwnedBy != *groupOpenAIModels[j].OwnedBy {
 			return *groupOpenAIModels[i].OwnedBy < *groupOpenAIModels[j].OwnedBy
 		}
@@ -111,11 +119,19 @@ func ListModelsForAdmin(c *gin.Context) {
 	}
 	// 根据 OwnedBy 排序
 	sort.Slice(openAIModels, func(i, j int) bool {
+
 		if openAIModels[i].OwnedBy == nil {
 			return true // 假设 nil 值小于任何非 nil 值
 		}
 		if openAIModels[j].OwnedBy == nil {
 			return false // 假设任何非 nil 值大于 nil 值
+		}
+		isGPtI := strings.HasPrefix(openAIModels[i].OwnedBy, "OpenAI")
+		isGPtJ := strings.HasPrefix(openAIModels[j].OwnedBy, "OpenAI")
+	
+		// 如果任一OwnedBy是"OpenAI"開头的，且另一OwnedBy不是 "OpenAI"開头的，返回那OwnedBy是"OpenAI"开头的那个模型实例更“小”
+		if isGPtI != isGPtJ {
+			return isGPtI
 		}
 
 		if *openAIModels[i].OwnedBy != *openAIModels[j].OwnedBy {
