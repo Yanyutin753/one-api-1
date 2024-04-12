@@ -118,12 +118,12 @@ func ListModelsForAdmin(c *gin.Context) {
 			return false // 假设任何非 nil 值大于 nil 值
 		}
 
-		if *groupOpenAIModels[i].OwnedBy != *groupOpenAIModels[j].OwnedBy {
-			return *groupOpenAIModels[i].OwnedBy < *groupOpenAIModels[j].OwnedBy
+		if *openAIModels[i].OwnedBy != *openAIModels[j].OwnedBy {
+			return *openAIModels[i].OwnedBy < *openAIModels[j].OwnedBy
 		}
 	
 		// 第二层排序：按照模型名称的字母顺序排序，小的在前
-		return groupOpenAIModels[i].Id < groupOpenAIModels[j].Id
+		return openAIModels[i].Id < openAIModels[j].Id
 	})
 
 	c.JSON(200, gin.H{
