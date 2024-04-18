@@ -173,6 +173,8 @@ const (
 	ChannelTypeLingyi         = 33
 	ChannelTypeMidjourney     = 34
 	ChannelTypeCloudflareAI   = 35
+	ChannelTypeCohere         = 36
+	ChannelTypeStabilityAI    = 37
 )
 
 var ChannelBaseURLs = []string{
@@ -212,6 +214,8 @@ var ChannelBaseURLs = []string{
 	"https://api.lingyiwanwu.com",       //33
 	"",                                  //34
 	"",                                  //35
+	"https://api.cohere.ai/v1",          //36
+	"https://api.stability.ai/v2beta",   //37
 }
 
 const (
