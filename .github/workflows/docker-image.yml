@@ -29,6 +29,12 @@ jobs:
             type=raw,value=latest
             type=ref,event=tag
 
+      - name: Build Backend (arm64)
+        run: |
+          sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo apt-get install gcc-aarch64-linux-gnu
+          CC=aarch64-linux-gnu-gcc CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)' -extldflags '-static'" -o one-api-arm64
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
