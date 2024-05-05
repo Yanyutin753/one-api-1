@@ -22,10 +22,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:embed web/build
 var buildFS embed.FS
 
-//go:embed web/build/index.html
 var indexPage []byte
 
 func main() {
