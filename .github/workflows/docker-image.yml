@@ -6,6 +6,13 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+    paths-ignore:
+      - "README.md"
 
 jobs:
   push_to_registry:
@@ -14,20 +21,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: yangclivia/one-api
-          tags: |
-            type=raw,value=latest
-            type=ref,event=tag
 
       - name: Build Backend (arm64)
         run: |
@@ -48,6 +41,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }} # Replace with your Docker Hub password secret
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -55,6 +55,7 @@ jobs:
           # list of Docker images to use as base name for tags
           images: |
             ghcr.io/${{ github.repository }}
+            docker.io/${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.DOCKER_HUB_REPO }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}

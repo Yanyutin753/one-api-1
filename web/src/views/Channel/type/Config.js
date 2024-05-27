@@ -212,6 +212,9 @@ const typeConfig = {
     modelGroup: 'Deepseek'
   },
   29: {
+    inputLabel: {
+      provider_models_list: '从Moonshot获取模型列表'
+    },
     input: {
       models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
       test_model: 'moonshot-v1-8k'
@@ -356,6 +359,16 @@ const typeConfig = {
       base_url: '请输入你部署的Ollama地址，例如：http://127.0.0.1:11434，如果你使用了cloudflare Zero Trust，可以在下方插件填入授权信息',
       key: '请随意填写'
     }
+  },
+  40: {
+    input: {
+      models: ['hunyuan-lite', 'hunyuan-pro', 'hunyuan-standard-256K', 'hunyuan-standard'],
+      test_model: 'hunyuan-lite'
+    },
+    prompt: {
+      key: '按照如下格式输入：SecretId|SecretKey'
+    },
+    modelGroup: 'Hunyuan'
   }
 };
 
