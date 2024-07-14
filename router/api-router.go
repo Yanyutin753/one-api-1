@@ -31,6 +31,8 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/wechat/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), controller.WeChatBind)
 		apiRouter.GET("/oauth/email/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), controller.EmailBind)
 
+		apiRouter.Any("/payment/notify/:uuid", controller.PaymentCallback)
+
 		userRoute := apiRouter.Group("/user")
 		{
 			userRoute.POST("/register", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.Register)
@@ -48,6 +50,9 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/aff", controller.GetAffCode)
 				selfRoute.POST("/topup", controller.TopUp)
 				selfRoute.GET("/models", relay.ListModels)
+				selfRoute.GET("/payment", controller.GetUserPaymentList)
+				selfRoute.POST("/order", controller.CreateOrder)
+				selfRoute.GET("/order/status", controller.CheckOrderStatus)
 			}
 
 			adminRoute := userRoute.Group("/")
@@ -89,8 +94,20 @@ func SetApiRouter(router *gin.Engine) {
 			channelRoute.PUT("/batch/azure_api", controller.BatchUpdateChannelsAzureApi)
 			channelRoute.PUT("/batch/del_model", controller.BatchDelModelChannels)
 			channelRoute.DELETE("/disabled", controller.DeleteDisabledChannel)
+			channelRoute.DELETE("/:id/tag", controller.DeleteChannelTag)
 			channelRoute.DELETE("/:id", controller.DeleteChannel)
 		}
+		channelTagRoute := apiRouter.Group("/channel_tag")
+		channelTagRoute.Use(middleware.AdminAuth())
+		{
+			channelTagRoute.GET("/_all", controller.GetChannelsTagAllList)
+			channelTagRoute.GET("/", controller.GetChannelsTagList)
+			channelTagRoute.GET("/:tag", controller.GetChannelsTag)
+			channelTagRoute.PUT("/:tag", controller.UpdateChannelsTag)
+			channelTagRoute.DELETE("/:tag", controller.DeleteChannelsTag)
+
+		}
+
 		tokenRoute := apiRouter.Group("/token")
 		tokenRoute.Use(middleware.UserAuth())
 		{
@@ -148,9 +165,24 @@ func SetApiRouter(router *gin.Engine) {
 
 		}
 
+		paymentRoute := apiRouter.Group("/payment")
+		paymentRoute.Use(middleware.AdminAuth())
+		{
+			paymentRoute.GET("/order", controller.GetOrderList)
+			paymentRoute.GET("/", controller.GetPaymentList)
+			paymentRoute.GET("/:id", controller.GetPayment)
+			paymentRoute.POST("/", controller.AddPayment)
+			paymentRoute.PUT("/", controller.UpdatePayment)
+			paymentRoute.DELETE("/:id", controller.DeletePayment)
+		}
+
 		mjRoute := apiRouter.Group("/mj")
 		mjRoute.GET("/self", middleware.UserAuth(), controller.GetUserMidjourney)
 		mjRoute.GET("/", middleware.AdminAuth(), controller.GetAllMidjourney)
+
+		taskRoute := apiRouter.Group("/task")
+		taskRoute.GET("/self", middleware.UserAuth(), controller.GetUserAllTask)
+		taskRoute.GET("/", middleware.AdminAuth(), controller.GetAllTask)
 	}
 
 }

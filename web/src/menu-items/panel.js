@@ -14,7 +14,9 @@ import {
   IconReceipt2,
   IconBrush,
   IconBrandGithubCopilot,
-  IconBallFootball
+  IconBallFootball,
+  IconBrandPaypal,
+  IconList
 } from '@tabler/icons-react';
 
 // constant
@@ -33,7 +35,9 @@ const icons = {
   IconReceipt2,
   IconBrush,
   IconBrandGithubCopilot,
-  IconBallFootball
+  IconBallFootball,
+  IconBrandPaypal,
+  IconList
 };
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -119,6 +123,14 @@ const panel = {
       breadcrumbs: false
     },
     {
+      id: 'task',
+      title: '异步任务',
+      type: 'item',
+      url: '/panel/task',
+      icon: icons.IconList,
+      breadcrumbs: false
+    },
+    {
       id: 'user',
       title: '用户',
       type: 'item',
@@ -153,6 +165,15 @@ const panel = {
       icon: icons.IconBrandGithubCopilot,
       breadcrumbs: false,
       isAdmin: false
+    },
+    {
+      id: 'payment',
+      title: '支付',
+      type: 'item',
+      url: '/panel/payment',
+      icon: icons.IconBrandPaypal,
+      breadcrumbs: false,
+      isAdmin: true
     },
     {
       id: 'setting',

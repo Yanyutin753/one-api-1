@@ -89,7 +89,7 @@ function statusInfo(status) {
   }
 }
 
-export default function ChannelTableRow({ item, manageChannel, handleOpenModal, setModalChannelId }) {
+export default function ChannelTableRow({ item, manageChannel, handleOpenModal, setModalChannelId, hideEdit }) {
   const [open, setOpen] = useState(null);
   const [openTest, setOpenTest] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -181,6 +181,11 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
     }
   };
 
+  const handleDeleteTag = async () => {
+    handleCloseMenu();
+    await manageChannel(item.id, 'delete_tag', '');
+  };
+
   const updateChannelBalance = async () => {
     try {
       const res = await API.get(`/api/channel/update_balance/${item.id}`);
@@ -220,12 +225,13 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
         </TableCell>
 
         <TableCell>{item.id}</TableCell>
-
         <TableCell>{item.name}</TableCell>
 
         <TableCell>
           <GroupLabel group={item.group} />
         </TableCell>
+
+        <TableCell>{item.tag && <Label key={item.tag}>{item.tag}</Label>}</TableCell>
 
         <TableCell>
           {!CHANNEL_OPTIONS[item.type] ? (
@@ -250,12 +256,15 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
             handle_action={handleResponseTime}
           />
         </TableCell>
+        {/* <TableCell>
+          
+        </TableCell> */}
         <TableCell>
+          {renderQuota(item.used_quota)}
           <Tooltip title={'点击更新余额'} placement="top" onClick={updateChannelBalance}>
             {renderBalance(item.type, itemBalance)}
           </Tooltip>
         </TableCell>
-        <TableCell>{renderQuota(item.used_quota)}</TableCell>
         <TableCell>
           <TextField
             id={`priority-${item.id}`}
@@ -313,16 +322,18 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
           sx: { minWidth: 140 }
         }}
       >
-        <MenuItem
-          onClick={() => {
-            handleCloseMenu();
-            handleOpenModal();
-            setModalChannelId(item.id);
-          }}
-        >
-          <IconEdit style={{ marginRight: '16px' }} />
-          编辑
-        </MenuItem>
+        {!hideEdit && (
+          <MenuItem
+            onClick={() => {
+              handleCloseMenu();
+              handleOpenModal();
+              setModalChannelId(item.id);
+            }}
+          >
+            <IconEdit style={{ marginRight: '16px' }} />
+            编辑
+          </MenuItem>
+        )}
 
         <MenuItem
           onClick={() => {
@@ -345,6 +356,12 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
           </MenuItem>
         )}
 
+        {item.tag && (
+          <MenuItem onClick={handleDeleteTag} sx={{ color: 'error.main' }}>
+            <IconTrash style={{ marginRight: '16px' }} />
+            删除标签
+          </MenuItem>
+        )}
         <MenuItem onClick={handleDeleteOpen} sx={{ color: 'error.main' }}>
           <IconTrash style={{ marginRight: '16px' }} />
           删除
@@ -374,7 +391,7 @@ export default function ChannelTableRow({ item, manageChannel, handleOpenModal, 
         ))}
       </StyledMenu>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0, textAlign: 'left' }} colSpan={12}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0, textAlign: 'left' }} colSpan={20}>
           <Collapse in={openRow} timeout="auto" unmountOnExit>
             <Grid container spacing={1}>
               <Grid item xs={12}>
@@ -468,26 +485,57 @@ ChannelTableRow.propTypes = {
   item: PropTypes.object,
   manageChannel: PropTypes.func,
   handleOpenModal: PropTypes.func,
-  setModalChannelId: PropTypes.func
+  setModalChannelId: PropTypes.func,
+  hideEdit: PropTypes.bool
 };
 
 function renderBalance(type, balance) {
   switch (type) {
     case 1: // OpenAI
-      return <span>${balance.toFixed(2)}</span>;
+      return (
+        <span>
+          <br />${balance.toFixed(2)}
+        </span>
+      );
     case 4: // CloseAI
-      return <span>¥{balance.toFixed(2)}</span>;
+      return (
+        <span>
+          <br />¥{balance.toFixed(2)}
+        </span>
+      );
     case 8: // 自定义
-      return <span>${balance.toFixed(2)}</span>;
+      return (
+        <span>
+          <br />${balance.toFixed(2)}
+        </span>
+      );
     case 5: // OpenAI-SB
-      return <span>¥{(balance / 10000).toFixed(2)}</span>;
+      return (
+        <span>
+          <br />¥{(balance / 10000).toFixed(2)}
+        </span>
+      );
     case 10: // AI Proxy
-      return <span>{renderNumber(balance)}</span>;
+      return (
+        <span>
+          <br />
+          {renderNumber(balance)}
+        </span>
+      );
     case 12: // API2GPT
-      return <span>¥{balance.toFixed(2)}</span>;
+      return (
+        <span>
+          <br />¥{balance.toFixed(2)}
+        </span>
+      );
     case 13: // AIGC2D
-      return <span>{renderNumber(balance)}</span>;
+      return (
+        <span>
+          <br />
+          {renderNumber(balance)}
+        </span>
+      );
     default:
-      return <span>不支持</span>;
+      return <span></span>;
   }
 }

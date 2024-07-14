@@ -11,6 +11,7 @@ const defaultConfig = {
     models: [],
     groups: ['default'],
     plugin: {},
+    tag: '',
     only_chat: false
   },
   inputLabel: {
@@ -25,6 +26,7 @@ const defaultConfig = {
     model_mapping: '模型映射关系',
     groups: '用户组',
     only_chat: '仅支持聊天',
+    tag: '标签',
     provider_models_list: ''
   },
   prompt: {
@@ -38,10 +40,11 @@ const defaultConfig = {
     models:
       '请选择该渠道所支持的模型,你也可以输入通配符*来匹配模型，例如：gpt-3.5*，表示支持所有gpt-3.5开头的模型，*号只能在最后一位使用，前面必须有字符，例如：gpt-3.5*是正确的，*gpt-3.5是错误的',
     model_mapping:
-      '请输入要修改的模型映射关系，格式为：api请求模型ID:实际转发给渠道的模型ID，使用JSON数组表示，例如：{"gpt-3.5": "gpt-35"}',
+      '请输入要修改的模型映射关系，格式为：api请求模型ID:实际转发给渠道的模型ID，使用JSON数组表示，例如：{"gpt-3.5-turbo-16k": "gpt-3.5-turbo-16k-0613"}',
     groups: '请选择该渠道所支持的用户组',
     only_chat: '如果选择了仅支持聊天，那么遇到有函数调用的请求会跳过该渠道',
-    provider_models_list: '必须填写所有数据后才能获取模型列表'
+    provider_models_list: '必须填写所有数据后才能获取模型列表',
+    tag: '你可以为你的渠道打一个标签，打完标签后，可以通过标签进行批量管理渠道'
   },
   modelGroup: 'OpenAI'
 };
@@ -370,6 +373,29 @@ const typeConfig = {
       key: '按照如下格式输入：SecretId|SecretKey'
     },
     modelGroup: 'Hunyuan'
+  },
+  41: {
+    input: {
+      models: ['suno_lyrics', 'chirp-v3-0', 'chirp-v3-5']
+    },
+    prompt: {
+      key: '密钥填写Suno-API的密钥，如果没有设置密钥，可以随便填',
+      base_url: '地址填写Suno-API部署的地址',
+      test_model: '',
+      model_mapping: ''
+    },
+    modelGroup: 'Suno'
+  },
+  42: {
+    input: {
+      models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
+    },
+    prompt: {
+      key: '请参考wiki中的文档获取key. https://github.com/MartialBE/one-api/wiki/VertexAI',
+      other: 'Region|ProjectID',
+      base_url: ''
+    },
+    modelGroup: 'VertexAI'
   }
 };
 

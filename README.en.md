@@ -13,7 +13,7 @@
 
 # One API
 
-_This project is based on [one-api](https://github.com/songquanpeng/one-api) and has been developed for the second time. The main purpose is to separate the module code in the original project, modularize it, and modify the front-end interface. This project also follows the MIT protocol._
+_This project is based on [one-api](https://github.com/songquanpeng/one-api) and has been developed for the second time._
 
 <p align="center">
   <a href="https://raw.githubusercontent.com/MartialBE/one-api/main/LICENSE">
@@ -61,6 +61,10 @@ If you find that a new model is missing, please update the newly added model in 
 - Support for models charged per use
 - Support for model wildcards
 - Support for starting the program using a configuration file
+- Support model price update
+- Support automatic acquisition of supplier models
+- Support chat only. If there is an incoming `function call` parameter after opening, the channel will be skipped.
+- Support payment
 
 ## Documentation
 
@@ -94,6 +98,7 @@ Please refer to the [documentation](https://github.com/MartialBE/one-api/wiki).
 | [Stability AI](https://platform.stability.ai/account/credits)         | -                                | -          | -      | ⚠️ image | -                                                                |
 | [Coze](https://www.coze.com/open/docs/chat?_lang=zh)                  | ✅                               | -          | -      | -        | -                                                                |
 | [Ollama](https://github.com/ollama/ollama)                            | ✅                               | ✅         | -      | -        | -                                                                |
+| [Suno](https://suno.com/)                                             | -                                | -          | -      | -        | [Suno-API](https://github.com/Suno-API/Suno-API)                 |
 
 ## Acknowledgements
 
@@ -101,7 +106,7 @@ Please refer to the [documentation](https://github.com/MartialBE/one-api/wiki).
   - [one-api](https://github.com/songquanpeng/one-api) serves as the foundation of this project.
   - [Berry Free React Admin Template](https://github.com/codedthemes/berry-free-react-admin-template) provides the frontend interface for this project.
   - [minimal-ui-kit](https://github.com/minimal-ui-kit/material-kit-react), some styles from this project were used.
-  - [new api](https://github.com/Calcium-Ion/new-api), the code for the Midjourney module is sourced from here.
+  - [new api](https://github.com/Calcium-Ion/new-api), the code for the Midjourney/Suno module is sourced from here.
 
 Special thanks to the authors and contributors of the above projects.
 
