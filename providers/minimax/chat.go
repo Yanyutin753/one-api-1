@@ -123,7 +123,7 @@ func (p *MiniMaxProvider) convertToChatOpenai(response *MiniMaxChatResponse, req
 		p.Usage.PromptTokens = response.Usage.TotalTokens
 	}
 	p.Usage.TotalTokens = response.Usage.TotalTokens
-	p.Usage.CompletionTokens = response.Usage.TotalTokens - p.Usage.PromptTokens
+	p.Usage.CompletionTokens = response.Usage.TotalTokens - p.Usage.PromptTokens + 1
 
 	openaiResponse.Usage = p.Usage
 
@@ -295,5 +295,5 @@ func (h *minimaxStreamHandler) handleUsage(miniResponse *MiniMaxChatResponse) {
 		h.Usage.PromptTokens = miniResponse.Usage.TotalTokens
 	}
 	h.Usage.TotalTokens = miniResponse.Usage.TotalTokens
-	h.Usage.CompletionTokens = miniResponse.Usage.TotalTokens - h.Usage.PromptTokens
+	h.Usage.CompletionTokens = miniResponse.Usage.TotalTokens - h.Usage.PromptTokens + 1
 }
