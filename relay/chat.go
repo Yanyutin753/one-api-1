@@ -52,14 +52,19 @@ func (r *relayChat) getRequest() interface{} {
 	return &r.chatRequest
 }
 
+func (r *relayChat) IsStream() bool {
+	return r.chatRequest.Stream
+}
+
 func (r *relayChat) getPromptTokens() (int, error) {
-	return common.CountTokenMessages(r.chatRequest.Messages, r.modelName), nil
+	channel := r.provider.GetChannel()
+	return common.CountTokenMessages(r.chatRequest.Messages, r.modelName, channel.PreCost), nil
 }
 
 func (r *relayChat) send() (err *types.OpenAIErrorWithStatusCode, done bool) {
 	chatProvider, ok := r.provider.(providersBase.ChatInterface)
 	if !ok {
-		err = common.StringErrorWrapper("channel not implemented", "channel_error", http.StatusServiceUnavailable)
+		err = common.StringErrorWrapperLocal("channel not implemented", "channel_error", http.StatusServiceUnavailable)
 		done = true
 		return
 	}

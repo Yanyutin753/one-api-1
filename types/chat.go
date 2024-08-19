@@ -98,10 +98,14 @@ func (m ChatCompletionMessage) ParseContent() []ChatMessagePart {
 					Text: subStr,
 				})
 			} else if subObj, ok := contentMap["image_url"].(map[string]any); ok {
+				urlValue, ok := subObj["url"].(string)
+				if !ok {
+					continue
+				}
 				contentList = append(contentList, ChatMessagePart{
 					Type: ContentTypeImageURL,
 					ImageURL: &ChatMessageImageURL{
-						URL: subObj["url"].(string),
+						URL: urlValue,
 					},
 				})
 			} else if subObj, ok := contentMap["image"].(string); ok {
@@ -161,31 +165,33 @@ type ChatMessagePart struct {
 }
 
 type ChatCompletionResponseFormat struct {
-	Type string `json:"type,omitempty"`
+	Type       string `json:"type,omitempty"`
+	JsonSchema any    `json:"json_schema,omitempty"`
 }
 
 type ChatCompletionRequest struct {
-	Model            string                        `json:"model" binding:"required"`
-	Messages         []ChatCompletionMessage       `json:"messages" binding:"required"`
-	MaxTokens        int                           `json:"max_tokens,omitempty"`
-	Temperature      float64                       `json:"temperature,omitempty"`
-	TopP             float64                       `json:"top_p,omitempty"`
-	N                int                           `json:"n,omitempty"`
-	Stream           bool                          `json:"stream,omitempty"`
-	StreamOptions    *StreamOptions                `json:"stream_options,omitempty"`
-	Stop             []string                      `json:"stop,omitempty"`
-	PresencePenalty  float64                       `json:"presence_penalty,omitempty"`
-	ResponseFormat   *ChatCompletionResponseFormat `json:"response_format,omitempty"`
-	Seed             *int                          `json:"seed,omitempty"`
-	FrequencyPenalty float64                       `json:"frequency_penalty,omitempty"`
-	LogitBias        any                           `json:"logit_bias,omitempty"`
-	LogProbs         *bool                         `json:"logprobs,omitempty"`
-	TopLogProbs      int                           `json:"top_logprobs,omitempty"`
-	User             string                        `json:"user,omitempty"`
-	Functions        []*ChatCompletionFunction     `json:"functions,omitempty"`
-	FunctionCall     any                           `json:"function_call,omitempty"`
-	Tools            []*ChatCompletionTool         `json:"tools,omitempty"`
-	ToolChoice       any                           `json:"tool_choice,omitempty"`
+	Model             string                        `json:"model" binding:"required"`
+	Messages          []ChatCompletionMessage       `json:"messages" binding:"required"`
+	MaxTokens         int                           `json:"max_tokens,omitempty"`
+	Temperature       float64                       `json:"temperature,omitempty"`
+	TopP              float64                       `json:"top_p,omitempty"`
+	N                 int                           `json:"n,omitempty"`
+	Stream            bool                          `json:"stream,omitempty"`
+	StreamOptions     *StreamOptions                `json:"stream_options,omitempty"`
+	Stop              []string                      `json:"stop,omitempty"`
+	PresencePenalty   float64                       `json:"presence_penalty,omitempty"`
+	ResponseFormat    *ChatCompletionResponseFormat `json:"response_format,omitempty"`
+	Seed              *int                          `json:"seed,omitempty"`
+	FrequencyPenalty  float64                       `json:"frequency_penalty,omitempty"`
+	LogitBias         any                           `json:"logit_bias,omitempty"`
+	LogProbs          *bool                         `json:"logprobs,omitempty"`
+	TopLogProbs       int                           `json:"top_logprobs,omitempty"`
+	User              string                        `json:"user,omitempty"`
+	Functions         []*ChatCompletionFunction     `json:"functions,omitempty"`
+	FunctionCall      any                           `json:"function_call,omitempty"`
+	Tools             []*ChatCompletionTool         `json:"tools,omitempty"`
+	ToolChoice        any                           `json:"tool_choice,omitempty"`
+	ParallelToolCalls bool                          `json:"parallel_tool_calls,omitempty"`
 }
 
 func (r ChatCompletionRequest) ParseToolChoice() (toolType, toolFunc string) {

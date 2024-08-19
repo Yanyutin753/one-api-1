@@ -34,7 +34,7 @@ func Relay(c *gin.Context) {
 
 	if cache != nil {
 		// 说明有缓存， 直接返回缓存内容
-		cacheProcessing(c, cache)
+		cacheProcessing(c, cache, relay.IsStream())
 		return
 	}
 
@@ -49,10 +49,10 @@ func Relay(c *gin.Context) {
 	}
 
 	channel := relay.getProvider().GetChannel()
-	go processChannelRelayError(c.Request.Context(), channel.Id, channel.Name, apiErr)
+	go processChannelRelayError(c.Request.Context(), channel.Id, channel.Name, apiErr, channel.Type)
 
 	retryTimes := config.RetryTimes
-	if done || !shouldRetry(c, apiErr.StatusCode) {
+	if done || !shouldRetry(c, apiErr, channel.Type) {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("relay error happen, status code is %d, won't retry in this case", apiErr.StatusCode))
 		retryTimes = 0
 	}
@@ -70,8 +70,8 @@ func Relay(c *gin.Context) {
 		if apiErr == nil {
 			return
 		}
-		go processChannelRelayError(c.Request.Context(), channel.Id, channel.Name, apiErr)
-		if done || !shouldRetry(c, apiErr.StatusCode) {
+		go processChannelRelayError(c.Request.Context(), channel.Id, channel.Name, apiErr, channel.Type)
+		if done || !shouldRetry(c, apiErr, channel.Type) {
 			break
 		}
 	}
@@ -87,7 +87,7 @@ func Relay(c *gin.Context) {
 func RelayHandler(relay RelayBaseInterface) (err *types.OpenAIErrorWithStatusCode, done bool) {
 	promptTokens, tonkeErr := relay.getPromptTokens()
 	if tonkeErr != nil {
-		err = common.ErrorWrapper(tonkeErr, "token_error", http.StatusBadRequest)
+		err = common.ErrorWrapperLocal(tonkeErr, "token_error", http.StatusBadRequest)
 		done = true
 		return
 	}
@@ -121,8 +121,8 @@ func RelayHandler(relay RelayBaseInterface) (err *types.OpenAIErrorWithStatusCod
 	return
 }
 
-func cacheProcessing(c *gin.Context, cacheProps *relay_util.ChatCacheProps) {
-	responseCache(c, cacheProps.Response)
+func cacheProcessing(c *gin.Context, cacheProps *relay_util.ChatCacheProps, isStream bool) {
+	responseCache(c, cacheProps.Response, isStream)
 
 	// 写入日志
 	tokenName := c.GetString("token_name")

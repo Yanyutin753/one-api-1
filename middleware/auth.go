@@ -87,6 +87,12 @@ func RootAuth() func(c *gin.Context) {
 func tokenAuth(c *gin.Context, key string) {
 	key = strings.TrimPrefix(key, "Bearer ")
 	key = strings.TrimPrefix(key, "sk-")
+
+	if len(key) < 48 {
+		abortWithMessage(c, http.StatusUnauthorized, "无效的令牌")
+		return
+	}
+
 	parts := strings.Split(key, "-")
 	key = parts[0]
 	token, err := model.ValidateUserToken(key)
@@ -134,6 +140,24 @@ func tokenAuth(c *gin.Context, key string) {
 func OpenaiAuth() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		key := c.Request.Header.Get("Authorization")
+		tokenAuth(c, key)
+	}
+}
+
+func ClaudeAuth() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		key := c.Request.Header.Get("x-api-key")
+		tokenAuth(c, key)
+	}
+}
+
+func GeminiAuth() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		key := c.Request.Header.Get("x-goog-api-key")
+		if key == "" {
+			// 查询GET参数
+			key = c.Query("key")
+		}
 		tokenAuth(c, key)
 	}
 }

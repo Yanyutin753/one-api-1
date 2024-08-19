@@ -16,6 +16,8 @@ func SetRelayRouter(router *gin.Engine) {
 	setOpenAIRouter(router)
 	setMJRouter(router)
 	setSunoRouter(router)
+	setClaudeRouter(router)
+	setGeminiRouter(router)
 }
 
 func setOpenAIRouter(router *gin.Engine) {
@@ -70,7 +72,7 @@ func setMJRouter(router *gin.Engine) {
 // Path: router/relay-router.go
 func registerMjRouterGroup(relayMjRouter *gin.RouterGroup) {
 	relayMjRouter.GET("/image/:id", midjourney.RelayMidjourneyImage)
-	relayMjRouter.Use(middleware.MjAuth(), middleware.Distribute())
+	relayMjRouter.Use(middleware.RelayMJPanicRecover(), middleware.MjAuth(), middleware.Distribute())
 	{
 		relayMjRouter.POST("/submit/action", midjourney.RelayMidjourney)
 		relayMjRouter.POST("/submit/shorten", midjourney.RelayMidjourney)
@@ -85,15 +87,34 @@ func registerMjRouterGroup(relayMjRouter *gin.RouterGroup) {
 		relayMjRouter.GET("/task/:id/image-seed", midjourney.RelayMidjourney)
 		relayMjRouter.POST("/task/list-by-condition", midjourney.RelayMidjourney)
 		relayMjRouter.POST("/insight-face/swap", midjourney.RelayMidjourney)
+		relayMjRouter.POST("/submit/upload-discord-images", midjourney.RelayMidjourney)
 	}
 }
 
 func setSunoRouter(router *gin.Engine) {
 	relaySunoRouter := router.Group("/suno")
-	relaySunoRouter.Use(middleware.OpenaiAuth(), middleware.Distribute())
+	relaySunoRouter.Use(middleware.RelaySunoPanicRecover(), middleware.OpenaiAuth(), middleware.Distribute())
 	{
 		relaySunoRouter.POST("/submit/:action", task.RelayTaskSubmit)
 		relaySunoRouter.POST("/fetch", suno.GetFetch)
 		relaySunoRouter.GET("/fetch/:id", suno.GetFetchByID)
+	}
+}
+
+func setClaudeRouter(router *gin.Engine) {
+	relayClaudeRouter := router.Group("/claude")
+	relayV1Router := relayClaudeRouter.Group("/v1")
+	relayV1Router.Use(middleware.RelayCluadePanicRecover(), middleware.ClaudeAuth(), middleware.Distribute())
+	{
+		relayV1Router.POST("/messages", relay.RelaycClaudeOnly)
+	}
+}
+
+func setGeminiRouter(router *gin.Engine) {
+	relayGeminiRouter := router.Group("/gemini")
+	relayV1Router := relayGeminiRouter.Group("/v1beta")
+	relayV1Router.Use(middleware.RelayGeminiPanicRecover(), middleware.GeminiAuth(), middleware.Distribute())
+	{
+		relayV1Router.POST("/models/:model", relay.RelaycGeminiOnly)
 	}
 }

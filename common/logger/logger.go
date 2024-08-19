@@ -3,17 +3,17 @@ package logger
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"one-api/common/utils"
 
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
@@ -25,11 +25,7 @@ const (
 	RequestIdKey = "X-Oneapi-Request-Id"
 )
 
-const maxLogCount = 1000000
-
-var logCount int
-var setupLogLock sync.Mutex
-var setupLogWorking bool
+var Logger *zap.Logger
 
 var defaultLogDir = "./logs"
 
@@ -39,22 +35,70 @@ func SetupLogger() {
 		return
 	}
 
-	ok := setupLogLock.TryLock()
-	if !ok {
-		log.Println("setup log is already working")
-		return
+	writeSyncer := getLogWriter(logDir)
+
+	encoder := getEncoder()
+
+	core := zapcore.NewCore(
+		encoder,
+		writeSyncer,
+		zap.NewAtomicLevelAt(getLogLevel()),
+	)
+	Logger = zap.New(core, zap.AddCaller())
+}
+
+func getEncoder() zapcore.Encoder {
+	encodeConfig := zap.NewProductionEncoderConfig()
+
+	encodeConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006/01/02 - 15:04:05")
+	encodeConfig.TimeKey = "time"
+	encodeConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encodeConfig.EncodeCaller = zapcore.ShortCallerEncoder
+
+	encodeConfig.EncodeDuration = zapcore.StringDurationEncoder
+
+	return zapcore.NewConsoleEncoder(encodeConfig)
+}
+
+func getLogWriter(logDir string) zapcore.WriteSyncer {
+	filename := utils.GetOrDefault("logs.filename", "one-hub.log")
+	logPath := filepath.Join(logDir, filename)
+
+	maxsize := utils.GetOrDefault("logs.max_size", 100)
+	maxAge := utils.GetOrDefault("logs.max_age", 7)
+	maxBackup := utils.GetOrDefault("logs.max_backup", 10)
+	compress := utils.GetOrDefault("logs.compress", false)
+
+	lumberJackLogger := &lumberjack.Logger{
+		Filename:   logPath,   // 文件位置
+		MaxSize:    maxsize,   // 进行切割之前,日志文件的最大大小(MB为单位)
+		MaxAge:     maxAge,    // 保留旧文件的最大天数
+		MaxBackups: maxBackup, // 保留旧文件的最大个数
+		Compress:   compress,  // 是否压缩/归档旧文件
 	}
-	defer func() {
-		setupLogLock.Unlock()
-		setupLogWorking = false
-	}()
-	logPath := filepath.Join(logDir, fmt.Sprintf("oneapi-%s.log", time.Now().Format("20060102")))
-	fd, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal("failed to open log file")
+
+	return zapcore.NewMultiWriteSyncer(zapcore.AddSync(lumberJackLogger), zapcore.AddSync(os.Stderr))
+}
+
+func getLogLevel() zapcore.Level {
+	logLevel := viper.GetString("log_level")
+	switch logLevel {
+	case "debug":
+		return zap.DebugLevel
+	case "info":
+		return zap.InfoLevel
+	case "warn":
+		return zap.WarnLevel
+	case "error":
+		return zap.ErrorLevel
+	case "panic":
+		return zap.PanicLevel
+	case "fatal":
+		return zap.FatalLevel
+	default:
+		return zap.InfoLevel
 	}
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, fd)
-	gin.DefaultErrorWriter = io.MultiWriter(os.Stderr, fd)
+
 }
 
 func getLogDir() string {
@@ -82,13 +126,20 @@ func getLogDir() string {
 }
 
 func SysLog(s string) {
-	t := time.Now()
-	_, _ = fmt.Fprintf(gin.DefaultWriter, "[SYS] %v | %s \n", t.Format("2006/01/02 - 15:04:05"), s)
+	entry := zapcore.Entry{
+		Level:   zapcore.InfoLevel,
+		Time:    time.Now(),
+		Message: "[SYS] | " + s,
+	}
+
+	// 使用 Logger 的核心来直接写入日志，绕过等级检查
+	if ce := Logger.Core().With([]zapcore.Field{}); ce != nil {
+		ce.Write(entry, nil)
+	}
 }
 
 func SysError(s string) {
-	t := time.Now()
-	_, _ = fmt.Fprintf(gin.DefaultErrorWriter, "[SYS] %v | %s \n", t.Format("2006/01/02 - 15:04:05"), s)
+	Logger.Error("[SYS] | " + s)
 }
 
 func LogInfo(ctx context.Context, msg string) {
@@ -104,28 +155,31 @@ func LogError(ctx context.Context, msg string) {
 }
 
 func logHelper(ctx context.Context, level string, msg string) {
-	writer := gin.DefaultErrorWriter
-	if level == loggerINFO {
-		writer = gin.DefaultWriter
-	}
+
 	id, ok := ctx.Value(RequestIdKey).(string)
 	if !ok {
 		id = "unknown"
 	}
-	now := time.Now()
-	_, _ = fmt.Fprintf(writer, "[%s] %v | %s | %s \n", level, now.Format("2006/01/02 - 15:04:05"), id, msg)
-	logCount++ // we don't need accurate count, so no lock here
-	if logCount > maxLogCount && !setupLogWorking {
-		logCount = 0
-		setupLogWorking = true
-		go func() {
-			SetupLogger()
-		}()
+
+	logMsg := fmt.Sprintf("%s | %s \n", id, msg)
+
+	switch level {
+	case loggerINFO:
+		Logger.Info(logMsg)
+	case loggerWarn:
+		Logger.Warn(logMsg)
+	case loggerError:
+		Logger.Error(logMsg)
+	default:
+		Logger.Info(logMsg)
 	}
+
 }
 
 func FatalLog(v ...any) {
-	t := time.Now()
-	_, _ = fmt.Fprintf(gin.DefaultErrorWriter, "[FATAL] %v | %v \n", t.Format("2006/01/02 - 15:04:05"), v)
+
+	Logger.Fatal(fmt.Sprintf("[FATAL] %v | %v \n", time.Now().Format("2006/01/02 - 15:04:05"), v))
+	// t := time.Now()
+	// _, _ = fmt.Fprintf(gin.DefaultErrorWriter, "[FATAL] %v | %v \n", t.Format("2006/01/02 - 15:04:05"), v)
 	os.Exit(1)
 }

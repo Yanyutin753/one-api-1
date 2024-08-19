@@ -70,6 +70,7 @@ func GetProvider(c *gin.Context, modeName string) (provider providersBase.Provid
 		return
 	}
 	provider.SetOriginalModel(modeName)
+	c.Set("original_model", modeName)
 
 	newModelName, fail = provider.ModelMappingHandler(modeName)
 	if fail != nil {
@@ -130,14 +131,14 @@ func responseJsonClient(c *gin.Context, data interface{}) *types.OpenAIErrorWith
 	// 将data转换为 JSON
 	responseBody, err := json.Marshal(data)
 	if err != nil {
-		return common.ErrorWrapper(err, "marshal_response_body_failed", http.StatusInternalServerError)
+		return common.ErrorWrapperLocal(err, "marshal_response_body_failed", http.StatusInternalServerError)
 	}
 
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(http.StatusOK)
 	_, err = c.Writer.Write(responseBody)
 	if err != nil {
-		return common.ErrorWrapper(err, "write_response_body_failed", http.StatusInternalServerError)
+		return common.ErrorWrapperLocal(err, "write_response_body_failed", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -173,7 +174,7 @@ func responseStreamClient(c *gin.Context, stream requester.StreamReaderInterface
 				}
 			}
 
-			streamData := "data: [DONE]\n"
+			streamData := "data: [DONE]\n\n"
 			fmt.Fprint(w, streamData)
 			cache.SetResponse(streamData)
 			return false
@@ -181,6 +182,38 @@ func responseStreamClient(c *gin.Context, stream requester.StreamReaderInterface
 	})
 
 	return nil
+}
+
+func responseGeneralStreamClient(c *gin.Context, stream requester.StreamReaderInterface[string], cache *relay_util.ChatCacheProps, endHandler StreamEndHandler) {
+	requester.SetEventStreamHeaders(c)
+	dataChan, errChan := stream.Recv()
+
+	defer stream.Close()
+	c.Stream(func(w io.Writer) bool {
+		select {
+		case data := <-dataChan:
+			fmt.Fprint(w, data)
+			cache.SetResponse(data)
+			return true
+		case err := <-errChan:
+			if !errors.Is(err, io.EOF) {
+				fmt.Fprint(w, err.Error())
+				logger.LogError(c.Request.Context(), "Stream err:"+err.Error())
+				// 报错不应该缓存
+				cache.NoCache()
+			}
+
+			if endHandler != nil {
+				streamData := endHandler()
+				if streamData != "" {
+					fmt.Fprint(w, streamData)
+					cache.SetResponse(streamData)
+				}
+			}
+			return false
+		}
+	})
+
 }
 
 func responseMultipart(c *gin.Context, resp *http.Response) *types.OpenAIErrorWithStatusCode {
@@ -214,10 +247,7 @@ func responseCustom(c *gin.Context, response *types.AudioResponseWrapper) *types
 	return nil
 }
 
-func responseCache(c *gin.Context, response string) {
-	// 检查是否是 data: 开头的流式数据
-	isStream := strings.HasPrefix(response, "data: ")
-
+func responseCache(c *gin.Context, response string, isStream bool) {
 	if isStream {
 		requester.SetEventStreamHeaders(c)
 		c.Stream(func(w io.Writer) bool {
@@ -230,30 +260,59 @@ func responseCache(c *gin.Context, response string) {
 
 }
 
-func shouldRetry(c *gin.Context, statusCode int) bool {
+func shouldRetry(c *gin.Context, apiErr *types.OpenAIErrorWithStatusCode, channelType int) bool {
 	channelId := c.GetInt("specific_channel_id")
 	ignore := c.GetBool("specific_channel_id_ignore")
 	if channelId > 0 && !ignore {
 		return false
 	}
-	if statusCode == http.StatusTooManyRequests {
-		return true
-	}
-	if statusCode/100 == 5 {
-		return true
-	}
-	if statusCode == http.StatusBadRequest {
+
+	if apiErr == nil {
 		return false
 	}
-	if statusCode/100 == 2 {
+
+	if apiErr.LocalError {
+		return false
+	}
+
+	if apiErr.StatusCode == http.StatusTooManyRequests {
+		return true
+	}
+
+	if apiErr.StatusCode == 307 {
+		return true
+	}
+
+	if apiErr.StatusCode/100 == 5 {
+		// 超时不重试
+		if apiErr.StatusCode == 504 || apiErr.StatusCode == 524 {
+			return false
+		}
+		return true
+	}
+
+	if apiErr.StatusCode == http.StatusBadRequest {
+		// 如果是culade 400错误，需要重试
+		if channelType == config.ChannelTypeAnthropic && strings.Contains(apiErr.Message, "This organization has been disabled") {
+			return true
+		}
+		return false
+	}
+
+	if apiErr.StatusCode == 408 {
+		// azure处理超时不重试
+		return false
+	}
+
+	if apiErr.StatusCode/100 == 2 {
 		return false
 	}
 	return true
 }
 
-func processChannelRelayError(ctx context.Context, channelId int, channelName string, err *types.OpenAIErrorWithStatusCode) {
+func processChannelRelayError(ctx context.Context, channelId int, channelName string, err *types.OpenAIErrorWithStatusCode, channelType int) {
 	logger.LogError(ctx, fmt.Sprintf("relay error (channel #%d(%s)): %s", channelId, channelName, err.Message))
-	if controller.ShouldDisableChannel(&err.OpenAIError, err.StatusCode) {
+	if controller.ShouldDisableChannel(channelType, err) {
 		controller.DisableChannel(channelId, channelName, err.Message, true)
 	}
 }
