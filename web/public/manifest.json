@@ -1,0 +1,21 @@
+{
+    "name": "Clivia API",
+    "short_name": "Clivia API",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "./favicon.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "any"
+        },
+        {
+            "src": "./favicon.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any"
+        }
+    ]
+}
