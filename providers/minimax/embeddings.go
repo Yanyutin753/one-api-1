@@ -86,7 +86,7 @@ func (p *MiniMaxProvider) convertToEmbeddingOpenai(response *MiniMaxEmbeddingRes
 		p.Usage.PromptTokens = response.TotalTokens
 	}
 	p.Usage.TotalTokens = response.TotalTokens
-	p.Usage.CompletionTokens = response.TotalTokens - p.Usage.PromptTokens
+	p.Usage.CompletionTokens = response.TotalTokens - p.Usage.PromptTokens + 1
 
 	openaiResponse.Usage = p.Usage
 
