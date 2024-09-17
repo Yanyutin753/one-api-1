@@ -313,6 +313,7 @@ const RegisterForm = ({ ...others }) => {
             )}
             {turnstileEnabled ? (
               <Turnstile
+                size="flexible"
                 sitekey={turnstileSiteKey}
                 onVerify={(token) => {
                   setTurnstileToken(token);
