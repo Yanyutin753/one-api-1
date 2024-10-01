@@ -146,7 +146,7 @@ const StyledLabel = styled(Box)(({ theme, ownerState }) => {
     display: 'inline-flex',
     overflow: 'hidden',
     textOverflow: 'clip',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     // textTransform: 'capitalize',
     padding: theme.spacing(0, 0.75),
     fontSize: theme.typography.pxToRem(12),
