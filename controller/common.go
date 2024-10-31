@@ -49,11 +49,6 @@ func ShouldDisableChannel(channelType int, err *types.OpenAIErrorWithStatusCode)
 		}
 	}
 
-	// 对503也进行了禁用渠道
-	if err.StatusCode == http.StatusServiceUnavailable {
-		return true
-	}
-
 	switch err.OpenAIError.Code {
 	case "invalid_api_key":
 		return true
