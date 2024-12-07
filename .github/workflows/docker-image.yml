@@ -7,6 +7,9 @@ on:
       - main
     tags:
       - v*
+  schedule:
+    # 每隔三天触发一次
+    - cron: "0 0 */3 * *"
 
 jobs:
   build-and-push:
