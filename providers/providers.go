@@ -28,6 +28,8 @@ import (
 	"one-api/providers/ollama"
 	"one-api/providers/openai"
 	"one-api/providers/palm"
+	"one-api/providers/recraftAI"
+	"one-api/providers/replicate"
 	"one-api/providers/siliconflow"
 	"one-api/providers/stabilityAI"
 	"one-api/providers/suno"
@@ -81,6 +83,8 @@ func init() {
 		config.ChannelTypeSiliconflow:  siliconflow.SiliconflowProviderFactory{},
 		config.ChannelTypeJina:         jina.JinaProviderFactory{},
 		config.ChannelTypeGithub:       github.GithubProviderFactory{},
+		config.ChannelTypeRecraft:      recraftAI.RecraftProviderFactory{},
+		config.ChannelTypeReplicate:    replicate.ReplicateProviderFactory{},
 	}
 }
 
@@ -90,10 +94,7 @@ func GetProvider(channel *model.Channel, c *gin.Context) base.ProviderInterface 
 	var provider base.ProviderInterface
 	if !ok {
 		// 处理未找到的供应商工厂
-		baseURL := config.ChannelBaseURLs[channel.Type]
-		if channel.GetBaseURL() != "" {
-			baseURL = channel.GetBaseURL()
-		}
+		baseURL := channel.GetBaseURL()
 		if baseURL == "" {
 			return nil
 		}
