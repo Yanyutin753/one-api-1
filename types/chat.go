@@ -169,8 +169,15 @@ type ChatMessagePart struct {
 }
 
 type ChatCompletionResponseFormat struct {
-	Type       string `json:"type,omitempty"`
-	JsonSchema any    `json:"json_schema,omitempty"`
+	Type       string            `json:"type,omitempty"`
+	JsonSchema *FormatJsonSchema `json:"json_schema,omitempty"`
+}
+
+type FormatJsonSchema struct {
+	Description string `json:"description,omitempty"`
+	Name        string `json:"name"`
+	Schema      any    `json:"schema,omitempty"`
+	Strict      any    `json:"strict,omitempty"`
 }
 
 type ChatCompletionRequest struct {
@@ -199,6 +206,8 @@ type ChatCompletionRequest struct {
 	ParallelToolCalls   bool                          `json:"parallel_tool_calls,omitempty"`
 	Modalities          []string                      `json:"modalities,omitempty"`
 	Audio               *ChatAudio                    `json:"audio,omitempty"`
+	ReasoningEffort     *string                       `json:"reasoning_effort,omitempty"`
+	Prediction          any                           `json:"prediction,omitempty"`
 }
 
 func (r ChatCompletionRequest) ParseToolChoice() (toolType, toolFunc string) {
