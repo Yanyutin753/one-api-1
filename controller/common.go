@@ -34,6 +34,7 @@ var containsKeywords = []string{
 	"The security token included in the request is invalid", //AWS
 	"Operation not allowed",                                 //AWS
 	"Your account is not authorized",                        //AWS
+	"your account balance is insufficient",                  // siliconflow
 }
 
 func ShouldDisableChannel(channelType int, err *types.OpenAIErrorWithStatusCode) bool {
