@@ -2,57 +2,20 @@ package minimax
 
 import (
 	"encoding/json"
-	"errors"
-	"net/http"
-	"one-api/common"
-	"one-api/common/config"
 	"one-api/common/requester"
 	"one-api/types"
-	"strings"
 )
 
-type minimaxStreamHandler struct {
-	Usage       *types.Usage
-	Request     *types.ChatCompletionRequest
-	LastContent string
-}
-
 func (p *MiniMaxProvider) CreateChatCompletion(request *types.ChatCompletionRequest) (*types.ChatCompletionResponse, *types.OpenAIErrorWithStatusCode) {
-	req, errWithCode := p.getChatRequest(request)
-	if errWithCode != nil {
-		return nil, errWithCode
-	}
-	defer req.Body.Close()
+	conversionRequest(request)
 
-	response := &MiniMaxChatResponse{}
-	// 发送请求
-	_, errWithCode = p.Requester.SendRequest(req, response, false)
-	if errWithCode != nil {
-		return nil, errWithCode
-	}
-
-	return p.convertToChatOpenai(response, request)
+	return p.OpenAIProvider.CreateChatCompletion(request)
 }
 
 func (p *MiniMaxProvider) CreateChatCompletionStream(request *types.ChatCompletionRequest) (requester.StreamReaderInterface[string], *types.OpenAIErrorWithStatusCode) {
-	req, errWithCode := p.getChatRequest(request)
-	if errWithCode != nil {
-		return nil, errWithCode
-	}
-	defer req.Body.Close()
+	conversionRequest(request)
 
-	// 发送请求
-	resp, errWithCode := p.Requester.SendRequestRaw(req)
-	if errWithCode != nil {
-		return nil, errWithCode
-	}
-
-	chatHandler := &minimaxStreamHandler{
-		Usage:   p.Usage,
-		Request: request,
-	}
-
-	return requester.RequestStream[string](p.Requester, resp, chatHandler.handlerStream)
+	return p.OpenAIProvider.CreateChatCompletionStream(request)
 }
 
 func (p *MiniMaxProvider) getChatRequest(request *types.ChatCompletionRequest) (*http.Request, *types.OpenAIErrorWithStatusCode) {
@@ -191,7 +154,13 @@ func convertFromChatOpenai(request *types.ChatCompletionRequest) *MiniMaxChatReq
 	} else if request.Tools != nil {
 		miniRequest.Functions = make([]*types.ChatCompletionFunction, 0, len(request.Tools))
 		for _, tool := range request.Tools {
-			miniRequest.Functions = append(miniRequest.Functions, &tool.Function)
+			if tool.Function.Parameters != nil {
+				parameters, err := json.Marshal(tool.Function.Parameters)
+				if err != nil {
+					continue
+				}
+				tool.Function.Parameters = string(parameters)
+			}
 		}
 	}
 	return miniRequest
