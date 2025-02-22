@@ -17,7 +17,7 @@ import ChannelTableRow from './component/TableRow';
 import KeywordTableHead from 'ui-component/TableHead';
 import { API } from 'utils/api';
 import EditeModal from './component/EditModal';
-import { ITEMS_PER_PAGE } from 'constants';
+import { ITEMS_PER_PAGE, PAGE_SIZE_OPTIONS } from 'constants';
 import TableToolBar from './component/TableToolBar';
 import BatchModal from './component/BatchModal';
 import { useTranslation } from 'react-i18next';
@@ -71,7 +71,7 @@ export default function ChannelList() {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('desc');
-  const [orderBy, setOrderBy] = useState('');
+  const [orderBy, setOrderBy] = useState('id');
   const [rowsPerPage, setRowsPerPage] = useState(ITEMS_PER_PAGE);
   const [listCount, setListCount] = useState(0);
   const [searching, setSearching] = useState(false);
@@ -196,7 +196,7 @@ export default function ChannelList() {
   // 处理刷新
   const handleRefresh = async (reset) => {
     if (reset) {
-      setOrderBy('');
+      setOrderBy('id');
       setOrder('desc');
       setToolBarValue(originalKeyword);
       setSearchKeyword(originalKeyword);
@@ -465,7 +465,7 @@ export default function ChannelList() {
           count={listCount}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
-          rowsPerPageOptions={[10, 25, 30]}
+          rowsPerPageOptions={PAGE_SIZE_OPTIONS}
           onRowsPerPageChange={handleChangeRowsPerPage}
           showFirstButton
           showLastButton
