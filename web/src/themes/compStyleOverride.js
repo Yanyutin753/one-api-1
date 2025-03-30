@@ -32,11 +32,11 @@ export default function componentStyleOverrides(theme) {
       styleOverrides: {
         root: {
           fontWeight: 500,
-          borderRadius: '12px',
+          borderRadius: '10px',
           textTransform: 'none',
           boxShadow: 'none',
-          minHeight: '40px',
-          padding: '8px 20px',
+          minHeight: '36px',
+          padding: '6px 16px',
           letterSpacing: '0.01em',
           transition: 'background-color 0.2s ease-in-out',
           '&.Mui-disabled': {
@@ -286,6 +286,13 @@ export default function componentStyleOverrides(theme) {
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: theme.colors?.errorMain
             }
+          },
+          '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+            '-webkit-appearance': 'none',
+            margin: 0
+          },
+          '& input[type=number]': {
+            '-moz-appearance': 'textfield'
           }
         },
         input: {
@@ -294,7 +301,7 @@ export default function componentStyleOverrides(theme) {
           fontSize: '0.9375rem'
         },
         inputMultiline: {
-          padding: '14px 16px'
+          padding: '4px 8px'
         },
         sizeSmall: {
           '& input': {
@@ -327,6 +334,30 @@ export default function componentStyleOverrides(theme) {
           fontSize: '0.75rem',
           marginLeft: '4px',
           marginTop: '4px'
+        }
+      }
+    },
+    MuiInputAdornment: {
+      styleOverrides: {
+        root: {
+          marginLeft: 0,
+          width: 'auto',
+          '& .MuiIconButton-root': {
+            padding: 0,
+            width: '20px',
+            height: '20px',
+            minWidth: '20px',
+            margin: 0
+          },
+          '& .MuiSvgIcon-root, & .iconify': {
+            fontSize: '16px',
+            width: '16px',
+            height: '16px'
+          }
+        },
+        positionEnd: {
+          marginLeft: 0,
+          paddingLeft: 0
         }
       }
     },
@@ -372,22 +403,57 @@ export default function componentStyleOverrides(theme) {
     MuiChip: {
       styleOverrides: {
         root: {
-          fontSize: '0.75rem',
+          fontSize: '0.8125rem',
           fontWeight: 500,
-          height: '24px',
+          height: '32px',
           borderRadius: '16px',
+          backgroundColor: theme.mode === 'dark' ? '#ffffff' : 'rgba(0, 0, 0, 0.8)',
+          color: theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.87)' : '#ffffff',
+          transition: 'all 0.2s ease-in-out',
           '&.MuiChip-outlined': {
-            borderColor: theme.divider
+            borderColor: theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: 'transparent',
+            color: theme.textDark
+          },
+          '&.MuiChip-clickable': {
+            '&:hover': {
+              backgroundColor: theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.9)' : '#000000'
+            }
           }
         },
         label: {
-          padding: '0 8px'
+          padding: '0 12px',
+          lineHeight: '32px'
         },
         icon: {
-          fontSize: '0.875rem'
+          fontSize: '1.25rem',
+          marginLeft: '8px',
+          marginRight: '-6px',
+          color: theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.87)' : '#ffffff'
         },
         deleteIcon: {
-          fontSize: '0.875rem'
+          fontSize: '1.25rem',
+          color: theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+          margin: '0 5px 0 -6px',
+          padding: '2px',
+          '&:hover': {
+            color: theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.87)' : '#ffffff',
+            backgroundColor: 'transparent'
+          }
+        },
+        sizeSmall: {
+          height: '26px',
+          fontSize: '0.75rem',
+          '& .MuiChip-label': {
+            padding: '0 10px',
+            lineHeight: '26px'
+          },
+          '& .MuiChip-icon': {
+            fontSize: '1rem'
+          },
+          '& .MuiChip-deleteIcon': {
+            fontSize: '1rem'
+          }
         }
       }
     },
@@ -444,13 +510,13 @@ export default function componentStyleOverrides(theme) {
         root: {
           borderBottom: `1px dashed ${theme.tableBorderBottom}`,
           fontSize: '0.875rem',
-          padding: '16px 24px',
+          padding: '16px 12px',
           textAlign: 'center',
           '&:first-of-type': {
-            paddingLeft: '24px'
+            paddingLeft: '12px'
           },
           '&:last-of-type': {
-            paddingRight: '24px'
+            paddingRight: '12px'
           }
         },
         head: {
@@ -459,7 +525,7 @@ export default function componentStyleOverrides(theme) {
           color: theme.darkTextSecondary,
           borderBottom: 'none',
           whiteSpace: 'nowrap',
-          padding: '14px 24px',
+          padding: '14px 12px',
           textAlign: 'center'
         },
         body: {
@@ -536,6 +602,7 @@ export default function componentStyleOverrides(theme) {
           right: '6px'
         },
         actions: {
+          padding: '0 30px',
           marginLeft: '16px',
           ...(theme.breakpoints && {
             [theme.breakpoints.down('sm')]: {
